@@ -330,8 +330,25 @@ button.tab.active,
   border-color: var(--foreground);
 }
 
-.class-color-picker {
-  margin-bottom: 2rem;
+/* Collapsed by default (see .class-view in ClassTracker.js) so the color
+   control doesn't compete with the deadlines for attention - only the
+   swatch-picker row below appears once "Change" is clicked. */
+.class-color-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.class-color-row .field-label {
+  margin-bottom: 0;
+}
+
+.class-color-indicator {
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 50%;
+  background: var(--class-accent);
 }
 
 /* ---- Deadline list ---- */

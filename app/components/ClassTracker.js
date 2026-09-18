@@ -15,6 +15,7 @@ const STORAGE_KEY = "syllabus-tracker-classes";
 export default function ClassTracker() {
   const [classes, setClasses] = useState([]);
   const [activeTab, setActiveTab] = useState("add");
+  const [editingColor, setEditingColor] = useState(false);
   // Becomes true once we've checked localStorage. Until then we don't know
   // whether the "real" list is empty or just hasn't loaded yet.
   const [loaded, setLoaded] = useState(false);
@@ -64,6 +65,13 @@ export default function ClassTracker() {
     }
   }, [classes, loaded]);
 
+  // Switches tabs and closes the color editor, so it doesn't stay open
+  // when you come back to a class later.
+  const selectTab = (tab) => {
+    setActiveTab(tab);
+    setEditingColor(false);
+  };
+
   const handleExtracted = (classData) => {
     const newClass = normalizeClass({
       id: crypto.randomUUID(),
@@ -73,7 +81,7 @@ export default function ClassTracker() {
       assignments: classData.assignments.map((a) => ({ ...a, done: false })),
     });
     setClasses((prev) => [...prev, newClass]);
-    setActiveTab(newClass.id);
+    selectTab(newClass.id);
   };
 
   const handleRename = (classId, label) => {
@@ -119,7 +127,7 @@ export default function ClassTracker() {
     const remaining = classes.filter((c) => c.id !== classId);
     setClasses(remaining);
     if (activeTab === classId) {
-      setActiveTab(remaining.length > 0 ? "combined" : "add");
+      selectTab(remaining.length > 0 ? "combined" : "add");
     }
   };
 
@@ -134,7 +142,7 @@ export default function ClassTracker() {
       <div className="tab-bar">
         <button
           className={`tab ${activeTab === "combined" ? "active" : ""}`}
-          onClick={() => setActiveTab("combined")}
+          onClick={() => selectTab("combined")}
         >
           All Classes
         </button>
@@ -144,7 +152,7 @@ export default function ClassTracker() {
             key={c.id}
             classData={c}
             active={activeTab === c.id}
-            onSelect={() => setActiveTab(c.id)}
+            onSelect={() => selectTab(c.id)}
             onRename={(label) => handleRename(c.id, label)}
             onDelete={() => handleDelete(c.id)}
           />
@@ -152,7 +160,7 @@ export default function ClassTracker() {
 
         <button
           className={`tab ${activeTab === "add" ? "active" : ""}`}
-          onClick={() => setActiveTab("add")}
+          onClick={() => selectTab("add")}
         >
           + Add Class
         </button>
@@ -179,13 +187,28 @@ export default function ClassTracker() {
         <div className={`class-view class-color-${activeClass.color}`}>
           <h2>{activeClass.courseName}</h2>
 
-          <div className="class-color-picker">
-            <p className="field-label">Class color</p>
+          <div className="class-color-row">
+            <span className="class-color-indicator" aria-hidden="true" />
+            <span className="field-label">Color</span>
+            {!editingColor && (
+              <button
+                type="button"
+                className="link-button"
+                onClick={() => setEditingColor(true)}
+              >
+                Change
+              </button>
+            )}
+          </div>
+          {editingColor && (
             <ColorSwatchPicker
               value={activeClass.color}
-              onSelect={(color) => handleColorChange(activeClass.id, color)}
+              onSelect={(color) => {
+                handleColorChange(activeClass.id, color);
+                setEditingColor(false);
+              }}
             />
-          </div>
+          )}
 
           <section>
             <h3>Deadlines</h3>

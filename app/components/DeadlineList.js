@@ -40,7 +40,7 @@ function DeadlineItem({ item, showCourse, onToggleDone }) {
         <span className="deadline-title">{item.title}</span>
         <span className="deadline-category">
           {item.categoryName}
-          {showCourse ? ` · ${item.courseName}` : ""}
+          {showCourse ? ` · ${item.label}` : ""}
         </span>
       </div>
       <div className="deadline-meta">

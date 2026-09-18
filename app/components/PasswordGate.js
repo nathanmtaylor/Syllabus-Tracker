@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import DemoView from "./DemoView";
 import { PASSWORD_STORAGE_KEY, getStoredPassword } from "@/lib/auth";
 
 // Wraps the whole app. Nothing inside `children` renders until a correct
@@ -11,6 +12,9 @@ import { PASSWORD_STORAGE_KEY, getStoredPassword } from "@/lib/auth";
 export default function PasswordGate({ children }) {
   const [checking, setChecking] = useState(true);
   const [unlocked, setUnlocked] = useState(false);
+  // Not persisted anywhere on purpose - refreshing during the demo drops
+  // you back to the password prompt, same as if you'd never clicked it.
+  const [demo, setDemo] = useState(false);
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
@@ -57,24 +61,47 @@ export default function PasswordGate({ children }) {
     return children;
   }
 
+  if (demo) {
+    return (
+      <main className="page">
+        <header className="app-header">
+          <h1 className="app-title">Syllabus Tracker</h1>
+          <p className="app-tagline">
+            Paste a syllabus, get deadlines and a grade calculator.
+          </p>
+        </header>
+        <DemoView onExitDemo={() => setDemo(false)} />
+      </main>
+    );
+  }
+
   return (
     <div className="password-gate">
-      <form className="password-form" onSubmit={handleSubmit}>
+      <div className="password-form">
         <h1 className="app-title">Syllabus Tracker</h1>
         <p className="subtitle">Enter the password to continue.</p>
-        <input
-          type="password"
-          className="password-input"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder="Password"
-          autoFocus
-        />
-        <button type="submit" className="extract-button" disabled={submitting}>
-          {submitting ? "Checking..." : "Unlock"}
-        </button>
+        <form onSubmit={handleSubmit}>
+          <input
+            type="password"
+            className="password-input"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Password"
+            autoFocus
+          />
+          <button type="submit" className="extract-button" disabled={submitting}>
+            {submitting ? "Checking..." : "Unlock"}
+          </button>
+        </form>
         {error && <p className="error-message">{error}</p>}
-      </form>
+        <button
+          type="button"
+          className="link-button demo-link"
+          onClick={() => setDemo(true)}
+        >
+          View demo instead
+        </button>
+      </div>
     </div>
   );
 }

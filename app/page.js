@@ -1,10 +1,9 @@
-import { SAMPLE_SYLLABUS } from "@/lib/sampleData";
-import SyllabusUploader from "./components/SyllabusUploader";
+import ClassTracker from "./components/ClassTracker";
 
 export default function Home() {
   return (
     <main className="page">
-      <SyllabusUploader initialData={SAMPLE_SYLLABUS} />
+      <ClassTracker />
     </main>
   );
 }

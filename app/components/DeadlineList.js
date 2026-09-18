@@ -13,31 +13,32 @@ function statusLabel(days) {
   return `Due in ${days} days`;
 }
 
-export default function DeadlineList({ assignments, categories }) {
-  const categoryName = (categoryId) =>
-    categories.find((c) => c.id === categoryId)?.name ?? "Uncategorized";
-
-  const sorted = [...assignments].sort(
+// `items` are already-resolved deadline rows - see lib/deadlines.js. When
+// `showCourse` is true (the combined "All Classes" view), each row also
+// shows which class it belongs to.
+export default function DeadlineList({ items, showCourse = false }) {
+  const sorted = [...items].sort(
     (a, b) => new Date(a.dueDate) - new Date(b.dueDate)
   );
 
   return (
     <ul className="deadline-list">
-      {sorted.map((assignment) => {
-        const days = daysUntil(assignment.dueDate);
+      {sorted.map((item) => {
+        const days = daysUntil(item.dueDate);
         const urgency =
           days < 0 ? "overdue" : days <= 7 ? "soon" : "later";
 
         return (
-          <li key={assignment.id} className={`deadline-item ${urgency}`}>
+          <li key={item.id} className={`deadline-item ${urgency}`}>
             <div className="deadline-main">
-              <span className="deadline-title">{assignment.title}</span>
+              <span className="deadline-title">{item.title}</span>
               <span className="deadline-category">
-                {categoryName(assignment.categoryId)}
+                {item.categoryName}
+                {showCourse ? ` · ${item.courseName}` : ""}
               </span>
             </div>
             <div className="deadline-meta">
-              <span>{assignment.dueDate}</span>
+              <span>{item.dueDate}</span>
               <span className="deadline-status">{statusLabel(days)}</span>
             </div>
           </li>

@@ -642,6 +642,47 @@ button.tab.active,
   font-size: 0.9rem;
 }
 
+/* ---- Password gate ---- */
+
+.password-gate {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+}
+
+.password-form {
+  width: 100%;
+  max-width: 320px;
+  text-align: center;
+}
+
+.password-form .subtitle {
+  margin-bottom: 1rem;
+}
+
+.password-input {
+  width: 100%;
+  padding: 0.65rem 0.9rem;
+  background: var(--surface);
+  color: var(--foreground);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 1rem;
+}
+
+.password-input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.password-form .extract-button {
+  width: 100%;
+  margin-top: 0.85rem;
+}
+
 /* ---- Small screens ---- */
 
 @media (max-width: 600px) {

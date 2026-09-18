@@ -3,6 +3,7 @@
 import { useState } from "react";
 import ColorSwatchPicker from "./ColorSwatchPicker";
 import { DEFAULT_CLASS_COLOR } from "@/lib/colors";
+import { PASSWORD_STORAGE_KEY, getStoredPassword } from "@/lib/auth";
 
 // `onExtracted(classData)` is called with the parsed syllabus (plus the
 // chosen color) once the serverless function returns successfully. This
@@ -26,9 +27,20 @@ export default function AddClassForm({ onExtracted }) {
     try {
       const res = await fetch("/api/extract", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "x-app-password": getStoredPassword() ?? "",
+        },
         body: JSON.stringify({ syllabusText }),
       });
+
+      if (res.status === 401) {
+        // The saved password is missing or no longer correct - clear it
+        // and reload so the password gate asks again.
+        localStorage.removeItem(PASSWORD_STORAGE_KEY);
+        window.location.reload();
+        return;
+      }
 
       const body = await res.json();
 

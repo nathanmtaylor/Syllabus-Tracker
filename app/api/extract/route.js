@@ -43,6 +43,16 @@ const SyllabusSchema = z.object({
 });
 
 export async function POST(request) {
+  // The real gate. Checking password on the client is just for a nicer UI -
+  // this check is what actually stops someone from calling this route (and
+  // spending your Anthropic credits) without the password, no matter how
+  // they send the request.
+  const expected = process.env.APP_PASSWORD;
+  const supplied = request.headers.get("x-app-password");
+  if (!expected || supplied !== expected) {
+    return Response.json({ error: "Incorrect password." }, { status: 401 });
+  }
+
   let syllabusText;
   try {
     ({ syllabusText } = await request.json());

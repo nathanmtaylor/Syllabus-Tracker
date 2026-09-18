@@ -2,8 +2,11 @@
 
 import { useEffect, useState } from "react";
 import AddClassForm from "./AddClassForm";
+import ClassTab from "./ClassTab";
+import ColorSwatchPicker from "./ColorSwatchPicker";
 import DeadlineList from "./DeadlineList";
 import GradeCalculator from "./GradeCalculator";
+import { normalizeClass } from "@/lib/classes";
 import { combineAllDeadlines, resolveClassDeadlines } from "@/lib/deadlines";
 import { SAMPLE_SYLLABUS } from "@/lib/sampleData";
 
@@ -28,11 +31,16 @@ export default function ClassTracker() {
       if (saved === null) {
         // Nothing saved yet - this is the very first visit. Seed one
         // example class so the UI isn't empty, same as the old demo.
-        const seeded = [{ id: "sample", ...SAMPLE_SYLLABUS }];
+        const seeded = [normalizeClass({ id: "sample", ...SAMPLE_SYLLABUS })];
+        // This effect syncs state from an external, browser-only source
+        // (localStorage), which can't be read any earlier than this.
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setClasses(seeded);
         setActiveTab("combined");
       } else {
-        const parsed = JSON.parse(saved);
+        // Passed through normalizeClass too, so classes saved before
+        // colors/labels existed still render correctly.
+        const parsed = JSON.parse(saved).map(normalizeClass);
         setClasses(parsed);
         setActiveTab(parsed.length > 0 ? "combined" : "add");
       }
@@ -57,9 +65,48 @@ export default function ClassTracker() {
   }, [classes, loaded]);
 
   const handleExtracted = (classData) => {
-    const newClass = { id: crypto.randomUUID(), ...classData };
+    const newClass = normalizeClass({
+      id: crypto.randomUUID(),
+      ...classData,
+      // The AI never reports completion status - every assignment starts
+      // undone.
+      assignments: classData.assignments.map((a) => ({ ...a, done: false })),
+    });
     setClasses((prev) => [...prev, newClass]);
     setActiveTab(newClass.id);
+  };
+
+  const handleRename = (classId, label) => {
+    setClasses((prev) =>
+      prev.map((c) => (c.id === classId ? { ...c, label } : c))
+    );
+  };
+
+  const handleColorChange = (classId, color) => {
+    setClasses((prev) =>
+      prev.map((c) => (c.id === classId ? { ...c, color } : c))
+    );
+  };
+
+  const handleToggleDone = (classId, assignmentId) => {
+    setClasses((prev) =>
+      prev.map((c) =>
+        c.id !== classId
+          ? c
+          : {
+              ...c,
+              assignments: c.assignments.map((a) =>
+                a.id === assignmentId ? { ...a, done: !a.done } : a
+              ),
+            }
+      )
+    );
+  };
+
+  const handleSaveScale = (classId, scale) => {
+    setClasses((prev) =>
+      prev.map((c) => (c.id === classId ? { ...c, gradeScale: scale } : c))
+    );
   };
 
   const handleDelete = (classId) => {
@@ -93,18 +140,14 @@ export default function ClassTracker() {
         </button>
 
         {classes.map((c) => (
-          <div key={c.id} className={`tab ${activeTab === c.id ? "active" : ""}`}>
-            <button className="tab-label" onClick={() => setActiveTab(c.id)}>
-              {c.courseName}
-            </button>
-            <button
-              className="tab-delete"
-              onClick={() => handleDelete(c.id)}
-              aria-label={`Delete ${c.courseName}`}
-            >
-              ×
-            </button>
-          </div>
+          <ClassTab
+            key={c.id}
+            classData={c}
+            active={activeTab === c.id}
+            onSelect={() => setActiveTab(c.id)}
+            onRename={(label) => handleRename(c.id, label)}
+            onDelete={() => handleDelete(c.id)}
+          />
         ))}
 
         <button
@@ -123,27 +166,47 @@ export default function ClassTracker() {
           {classes.length === 0 ? (
             <p className="subtitle">No classes yet - add one to see deadlines here.</p>
           ) : (
-            <DeadlineList items={combineAllDeadlines(classes)} showCourse />
+            <DeadlineList
+              items={combineAllDeadlines(classes)}
+              showCourse
+              onToggleDone={handleToggleDone}
+            />
           )}
         </section>
       )}
 
       {activeClass && (
-        <div>
-          <h1>{activeClass.courseName}</h1>
+        <div className={`class-view class-color-${activeClass.color}`}>
+          <h2>{activeClass.courseName}</h2>
+
+          <div className="class-color-picker">
+            <p className="field-label">Class color</p>
+            <ColorSwatchPicker
+              value={activeClass.color}
+              onSelect={(color) => handleColorChange(activeClass.id, color)}
+            />
+          </div>
 
           <section>
-            <h2>Deadlines</h2>
-            <DeadlineList items={resolveClassDeadlines(activeClass)} />
+            <h3>Deadlines</h3>
+            <DeadlineList
+              items={resolveClassDeadlines(activeClass)}
+              onToggleDone={handleToggleDone}
+            />
           </section>
 
           <section>
-            <h2>Grade Calculator</h2>
+            <h3>Grade Calculator</h3>
             {/* Keyed by class id so switching classes always starts with
                 blank inputs, instead of two classes that happen to share a
                 category id (e.g. both using "homework") bleeding scores
                 into each other. */}
-            <GradeCalculator key={activeClass.id} categories={activeClass.gradingBreakdown} />
+            <GradeCalculator
+              key={activeClass.id}
+              categories={activeClass.gradingBreakdown}
+              gradeScale={activeClass.gradeScale}
+              onSaveScale={(scale) => handleSaveScale(activeClass.id, scale)}
+            />
           </section>
         </div>
       )}

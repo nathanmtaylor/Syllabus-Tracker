@@ -1,11 +1,15 @@
 "use client";
 
 import { useState } from "react";
+import GradeScaleEditor from "./GradeScaleEditor";
+import { percentageToLetter } from "@/lib/grades";
 
-export default function GradeCalculator({ categories }) {
+export default function GradeCalculator({ categories, gradeScale, onSaveScale }) {
   // Tracks what the user typed into each category's score box, keyed by
   // category id. Starts empty since they haven't entered anything yet.
   const [scores, setScores] = useState({});
+  const [editingScale, setEditingScale] = useState(false);
+  const hasScale = Boolean(gradeScale && gradeScale.length > 0);
 
   const handleChange = (categoryId, value) => {
     setScores((prev) => ({ ...prev, [categoryId]: value }));
@@ -23,6 +27,8 @@ export default function GradeCalculator({ categories }) {
     0
   );
   const currentGrade = weightEntered > 0 ? weightedPoints / weightEntered : null;
+  const letterGrade =
+    currentGrade !== null ? percentageToLetter(currentGrade, gradeScale) : null;
 
   return (
     <div>
@@ -59,11 +65,35 @@ export default function GradeCalculator({ categories }) {
           <p>Enter a score above to see your current grade.</p>
         ) : (
           <p>
-            Current grade: <strong>{currentGrade.toFixed(1)}%</strong>{" "}
+            Current grade: <strong>{currentGrade.toFixed(1)}%</strong>
+            {letterGrade && <strong className="letter-grade"> ({letterGrade})</strong>}{" "}
             <span className="grade-note">
               (based on {weightEntered}% of your final grade so far)
             </span>
           </p>
+        )}
+
+        {!hasScale && !editingScale && (
+          <p className="grade-note">
+            This syllabus didn&apos;t specify a letter grade scale.{" "}
+            <button
+              type="button"
+              className="link-button"
+              onClick={() => setEditingScale(true)}
+            >
+              Enter one manually
+            </button>
+          </p>
+        )}
+
+        {editingScale && (
+          <GradeScaleEditor
+            onSave={(scale) => {
+              onSaveScale(scale);
+              setEditingScale(false);
+            }}
+            onCancel={() => setEditingScale(false)}
+          />
         )}
       </div>
     </div>

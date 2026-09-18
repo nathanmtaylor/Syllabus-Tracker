@@ -12,6 +12,9 @@ const client = new Anthropic();
 // model returned valid JSON" parsing.
 const SyllabusSchema = z.object({
   courseName: z.string(),
+  // A short code like "PSY 101" or "MELC 0003" - null if the syllabus
+  // doesn't clearly state one. See the system prompt.
+  courseCode: z.string().nullable(),
   gradingBreakdown: z.array(
     z.object({
       id: z.string(),
@@ -27,6 +30,16 @@ const SyllabusSchema = z.object({
       dueDate: z.string(),
     })
   ),
+  // Only present when the syllabus text states explicit numeric cutoffs
+  // (e.g. "A 93-100, A- 90-92"). null otherwise - see the system prompt.
+  gradeScale: z
+    .array(
+      z.object({
+        letter: z.string(),
+        min: z.number(),
+      })
+    )
+    .nullable(),
 });
 
 export async function POST(request) {
@@ -49,10 +62,15 @@ export async function POST(request) {
       model: "claude-opus-5",
       max_tokens: 16000,
       system: `You extract structured data from college syllabi. Read the syllabus text and pull out:
-- The course name.
+- The course name: the full title as written.
+- A short course code (courseCode), if the syllabus states one - usually a department abbreviation plus a number (e.g. "PSY 101", "MELC 0003", "Physics 8"). It may appear inside the full course title itself. If there's no clear short code, set courseCode to null - the app will build a short label on its own in that case, so don't guess or invent one.
 - The grading breakdown: each category (e.g. Homework, Exams) and what percent of the final grade it's worth. Give each category a short lowercase id with no spaces (e.g. "homework").
 - Every graded assignment, quiz, or exam mentioned, with its title, due date in YYYY-MM-DD format, and which grading category id it belongs to. If a year isn't stated, use your best judgment based on the surrounding dates.
-If the syllabus doesn't clearly state something, make a reasonable estimate rather than leaving it out.`,
+- The letter grade scale (gradeScale), ONLY if the syllabus explicitly states numeric percentage cutoffs for letter grades (e.g. "A: 93-100, A-: 90-92, B+: 87-89"). Represent each letter as the minimum percentage required to earn it.
+
+For the course name, grading breakdown, and assignments: if something isn't perfectly clear, make a reasonable estimate rather than leaving it out.
+
+The gradeScale and courseCode fields are the exceptions to that - gradeScale must be null unless the syllabus states specific numeric cutoffs, and courseCode must be null unless the syllabus clearly states a short code. Never invent, estimate, or assume either one (e.g. do not assume "90 and up is an A" just because that's common, and do not make up a course code that isn't actually written in the text).`,
       messages: [{ role: "user", content: syllabusText }],
       output_config: {
         // Extraction like this doesn't need deep reasoning, so "low" keeps

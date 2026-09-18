@@ -1,12 +1,16 @@
 "use client";
 
 import { useState } from "react";
+import ColorSwatchPicker from "./ColorSwatchPicker";
+import { DEFAULT_CLASS_COLOR } from "@/lib/colors";
 
-// `onExtracted(classData)` is called with the parsed syllabus once the
-// serverless function returns successfully. This component doesn't know
-// or care what happens to that data afterward - ClassTracker decides.
+// `onExtracted(classData)` is called with the parsed syllabus (plus the
+// chosen color) once the serverless function returns successfully. This
+// component doesn't know or care what happens to that data afterward -
+// ClassTracker decides.
 export default function AddClassForm({ onExtracted }) {
   const [syllabusText, setSyllabusText] = useState("");
+  const [color, setColor] = useState(DEFAULT_CLASS_COLOR);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -32,7 +36,7 @@ export default function AddClassForm({ onExtracted }) {
         throw new Error(body.error || "Something went wrong.");
       }
 
-      onExtracted(body);
+      onExtracted({ ...body, color });
       setSyllabusText("");
     } catch (err) {
       setError(err.message);
@@ -45,6 +49,10 @@ export default function AddClassForm({ onExtracted }) {
     <section>
       <h2>Add a class</h2>
       <p className="subtitle">Paste a syllabus below to add it as a new class.</p>
+
+      <p className="field-label">Color</p>
+      <ColorSwatchPicker value={color} onSelect={setColor} />
+
       <textarea
         className="syllabus-textarea"
         rows={10}

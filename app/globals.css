@@ -1,13 +1,91 @@
+/* ---- Design tokens ----
+   Every color in this file is one of these variables, so the whole app's
+   palette can be adjusted by editing values in exactly one place. Each
+   token is redefined for dark mode below - components never hardcode a
+   light/dark check themselves. */
+
 :root {
   --background: #ffffff;
-  --foreground: #171717;
+  --surface: #f6f7f9; /* card/input backgrounds - a step off the page background */
+  --foreground: #16181d;
+  --muted: #6b7280; /* secondary text: labels, timestamps, hints */
+  --border: #e3e5e9;
+
+  --accent: #3562d6;
+  --accent-hover: #2b52b8;
+  --accent-foreground: #ffffff;
+  --accent-soft: rgba(53, 98, 214, 0.12); /* focus rings */
+
+  --danger: #d1453b;
+  --danger-soft: #fbe6e4;
+  --warning: #b6790c;
+  --warning-soft: #faf0d6;
+  --success: #2f9e52;
+  --success-soft: #e3f6ea;
+
+  --radius: 10px;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #121316;
+    --surface: #1b1d21;
+    --foreground: #f2f3f5;
+    --muted: #9099a6;
+    --border: #2c2f34;
+
+    --accent: #6f96f0;
+    --accent-hover: #85a6f5;
+    --accent-foreground: #0f1115;
+    --accent-soft: rgba(111, 150, 240, 0.16);
+
+    --danger: #ff7a72;
+    --danger-soft: rgba(255, 122, 114, 0.14);
+    --warning: #f0b429;
+    --warning-soft: rgba(240, 180, 41, 0.14);
+    --success: #5fd17f;
+    --success-soft: rgba(95, 209, 127, 0.14);
   }
+
+  html {
+    color-scheme: dark;
+  }
+}
+
+/* ---- Class colors ----
+   Each class is tagged with one of these preset keys (see lib/colors.js).
+   Every rule below only ever uses --class-accent as a border, dot, swatch,
+   or text color - never as a big filled background behind text - so
+   readability never depends on contrast-checking 8 arbitrary colors
+   against arbitrary text. Light/dark values are tuned separately, same as
+   the tokens above. */
+
+.class-color-blue { --class-accent: #3562d6; }
+.class-color-teal { --class-accent: #0f8b8d; }
+.class-color-green { --class-accent: #2f9e52; }
+.class-color-amber { --class-accent: #a16d00; }
+.class-color-orange { --class-accent: #c2540a; }
+.class-color-red { --class-accent: #c0392b; }
+.class-color-pink { --class-accent: #c2255c; }
+.class-color-purple { --class-accent: #7c3aed; }
+
+@media (prefers-color-scheme: dark) {
+  .class-color-blue { --class-accent: #6f96f0; }
+  .class-color-teal { --class-accent: #4fd1c5; }
+  .class-color-green { --class-accent: #5fd17f; }
+  .class-color-amber { --class-accent: #f0c419; }
+  .class-color-orange { --class-accent: #ffa94d; }
+  .class-color-red { --class-accent: #ff8a80; }
+  .class-color-pink { --class-accent: #f472b6; }
+  .class-color-purple { --class-accent: #b794f6; }
+}
+
+/* ---- Base / reset ---- */
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
 }
 
 html {
@@ -22,19 +100,13 @@ body {
 
 body {
   min-height: 100%;
-  display: flex;
-  flex-direction: column;
   color: var(--foreground);
   background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system,
+    sans-serif;
+  line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-}
-
-* {
-  box-sizing: border-box;
-  padding: 0;
-  margin: 0;
 }
 
 a {
@@ -42,210 +114,560 @@ a {
   text-decoration: none;
 }
 
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
-  }
+button,
+input,
+textarea {
+  font-family: inherit;
 }
 
-/* ---- Syllabus Tracker styles ---- */
+h1,
+h2,
+h3 {
+  line-height: 1.25;
+}
+
+/* ---- Layout & typography ---- */
 
 .page {
-  max-width: 700px;
+  max-width: 760px;
   margin: 0 auto;
-  padding: 2rem 1.5rem 4rem;
+  padding: 2.5rem 1.5rem 4rem;
 }
 
-.subtitle {
-  color: #888;
+.app-header {
   margin-bottom: 2rem;
 }
 
+.app-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.app-tagline {
+  color: var(--muted);
+  font-size: 0.9rem;
+  margin-top: 0.2rem;
+}
+
+.subtitle {
+  color: var(--muted);
+  margin-bottom: 1.5rem;
+}
+
 section {
-  margin-bottom: 2.5rem;
+  margin-bottom: 3rem;
 }
 
-section h2 {
-  margin-bottom: 0.75rem;
+section:last-child {
+  margin-bottom: 0;
 }
 
-/* Deadline list */
-
-.deadline-list {
-  list-style: none;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
+h2 {
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
 }
 
-.deadline-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.75rem 1rem;
-  border-radius: 8px;
-  border: 1px solid #333;
+/* The class-name heading picks up that class's color as a small accent
+   underline, so its own view feels visually tied to its tab and color. */
+.class-view > h2 {
+  display: inline-block;
+  padding-bottom: 0.35rem;
+  border-bottom: 3px solid var(--class-accent, var(--accent));
 }
 
-.deadline-main {
-  display: flex;
-  flex-direction: column;
-}
-
-.deadline-title {
+/* Subsection labels ("Deadlines", "Grade Calculator", "Completed") read as
+   quiet eyebrows under a bigger class-name heading, rather than competing
+   with it for attention. */
+h3 {
+  font-size: 0.8rem;
   font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 0.85rem;
 }
 
-.deadline-category {
-  font-size: 0.85rem;
-  color: #888;
-}
+/* ---- Class tabs ---- */
 
-.deadline-meta {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  font-size: 0.85rem;
-}
-
-.deadline-status {
-  font-weight: 600;
-}
-
-.deadline-item.overdue .deadline-status {
-  color: #ff6b6b;
-}
-
-.deadline-item.soon .deadline-status {
-  color: #ffb020;
-}
-
-.deadline-item.later .deadline-status {
-  color: #4caf50;
-}
-
-/* Grade calculator */
-
-.grade-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.grade-table th,
-.grade-table td {
-  text-align: left;
-  padding: 0.5rem;
-  border-bottom: 1px solid #333;
-}
-
-.grade-table input {
-  width: 5rem;
-  padding: 0.25rem 0.5rem;
-  background: var(--background);
-  color: var(--foreground);
-  border: 1px solid #555;
-  border-radius: 4px;
-}
-
-.grade-result {
-  margin-top: 1rem;
-}
-
-.grade-note {
-  color: #888;
-  font-size: 0.85rem;
-}
-
-/* Syllabus uploader */
-
-.syllabus-textarea {
-  width: 100%;
-  padding: 0.75rem;
-  background: var(--background);
-  color: var(--foreground);
-  border: 1px solid #555;
-  border-radius: 6px;
-  font-family: inherit;
-  font-size: 0.95rem;
-  resize: vertical;
-}
-
-.extract-button {
-  margin-top: 0.75rem;
-  padding: 0.6rem 1.2rem;
-  border: none;
-  border-radius: 6px;
-  background: #4c8bf5;
-  color: #fff;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.extract-button:disabled {
-  background: #555;
-  cursor: not-allowed;
-}
-
-.error-message {
-  margin-top: 0.75rem;
-  color: #ff6b6b;
-}
-
-.loading-text {
-  color: #888;
-}
-
-/* Class tabs */
-
+/* overflow-x: auto here also clips vertical overflow, even without an
+   explicit overflow-y - the CSS spec forces overflow-y to "auto" too
+   whenever overflow-x isn't "visible". That rules out an absolutely
+   positioned popover anchored to a tab (it would get silently clipped),
+   which is why the color picker lives in the class's own view instead of
+   popping up from its tab. */
 .tab-bar {
   display: flex;
   flex-wrap: nowrap;
   overflow-x: auto;
-  gap: 0.5rem;
-  margin-bottom: 2rem;
-  border-bottom: 1px solid #333;
-  padding-bottom: 0.5rem;
+  -webkit-overflow-scrolling: touch;
+  gap: 0.25rem;
+  margin-bottom: 2.25rem;
+  border-bottom: 1px solid var(--border);
 }
 
 .tab {
   display: flex;
   align-items: center;
   flex-shrink: 0;
-  border-radius: 6px;
-  background: transparent;
+  border-bottom: 2px solid transparent;
+}
+
+.tab-color-dot {
+  display: block;
+  width: 0.6rem;
+  height: 0.6rem;
+  flex-shrink: 0;
+  margin-left: 0.9rem;
+  border-radius: 50%;
+  background: var(--class-accent, var(--muted));
 }
 
 button.tab {
   border: none;
-  padding: 0.5rem 0.9rem;
-  color: var(--foreground);
-  cursor: pointer;
+  background: transparent;
+  padding: 0.75rem 1rem;
+  color: var(--muted);
+  font-size: 0.95rem;
+  font-weight: 500;
   white-space: nowrap;
-}
-
-.tab.active {
-  background: #333;
+  cursor: pointer;
 }
 
 .tab-label {
   border: none;
   background: transparent;
-  padding: 0.5rem 0 0.5rem 0.9rem;
-  color: var(--foreground);
-  cursor: pointer;
+  padding: 0.75rem 0.25rem 0.75rem 0.5rem;
+  color: var(--muted);
+  font-size: 0.95rem;
+  font-weight: 500;
   white-space: nowrap;
+  cursor: pointer;
 }
 
+.tab-rename-input {
+  margin: 0 0.25rem;
+  padding: 0.3rem 0.4rem;
+  font-size: 0.95rem;
+  background: var(--surface);
+  color: var(--foreground);
+  border: 1px solid var(--accent);
+  border-radius: 4px;
+  width: 9rem;
+  max-width: 40vw;
+}
+
+.tab-rename,
 .tab-delete {
   border: none;
   background: transparent;
-  color: #888;
-  padding: 0.5rem 0.6rem;
+  color: var(--muted);
+  padding: 0.5rem 0.4rem;
   cursor: pointer;
-  font-size: 1rem;
+  font-size: 0.95rem;
   line-height: 1;
 }
 
+.tab-delete {
+  font-size: 1.05rem;
+  padding-right: 0.85rem;
+}
+
+button.tab:hover,
+.tab-label:hover {
+  color: var(--foreground);
+}
+
+.tab-rename:hover {
+  color: var(--accent);
+}
+
 .tab-delete:hover {
-  color: #ff6b6b;
+  color: var(--danger);
+}
+
+.tab.active {
+  border-bottom-color: var(--class-accent, var(--accent));
+}
+
+button.tab.active,
+.tab.active .tab-label {
+  color: var(--class-accent, var(--accent));
+  font-weight: 600;
+}
+
+.loading-text {
+  color: var(--muted);
+}
+
+/* ---- Color picking ---- */
+
+.field-label {
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin-bottom: 0.4rem;
+}
+
+.color-swatch-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-bottom: 1rem;
+}
+
+.color-swatch {
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  background: var(--class-accent);
+  cursor: pointer;
+  padding: 0;
+}
+
+.color-swatch.selected {
+  border-color: var(--foreground);
+}
+
+.class-color-picker {
+  margin-bottom: 2rem;
+}
+
+/* ---- Deadline list ---- */
+
+.deadline-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.deadline-item {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 0.85rem 1rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.class-color-swatch {
+  width: 0.65rem;
+  height: 0.65rem;
+  flex-shrink: 0;
+  border-radius: 3px;
+  background: var(--class-accent, var(--muted));
+}
+
+.deadline-checkbox {
+  width: 1.2rem;
+  height: 1.2rem;
+  flex-shrink: 0;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+.deadline-main {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.deadline-title {
+  font-weight: 600;
+  font-size: 0.98rem;
+}
+
+.deadline-category {
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+.deadline-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.3rem;
+  flex-shrink: 0;
+}
+
+.deadline-meta > span:first-child {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+/* Urgency shows as a quiet left-border color plus a soft-background pill
+   on the status text - readable at a glance without shouting in bold red. */
+
+.deadline-status {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  white-space: nowrap;
+  color: var(--muted);
+  background: var(--border);
+}
+
+.deadline-item.overdue {
+  border-left-color: var(--danger);
+}
+
+.deadline-item.overdue .deadline-status {
+  color: var(--danger);
+  background: var(--danger-soft);
+}
+
+.deadline-item.soon {
+  border-left-color: var(--warning);
+}
+
+.deadline-item.soon .deadline-status {
+  color: var(--warning);
+  background: var(--warning-soft);
+}
+
+.deadline-item.later {
+  border-left-color: var(--success);
+}
+
+.deadline-item.later .deadline-status {
+  color: var(--success);
+  background: var(--success-soft);
+}
+
+.deadline-item.done {
+  border-left-color: var(--border);
+  opacity: 0.6;
+}
+
+.deadline-item.done .deadline-title {
+  text-decoration: line-through;
+}
+
+.completed-section {
+  margin-top: 1.75rem;
+}
+
+/* ---- Grade calculator ---- */
+
+.grade-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.grade-table th {
+  text-align: left;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 0.5rem 0.6rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.grade-table td {
+  padding: 0.7rem 0.6rem;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.95rem;
+}
+
+.grade-table tr:last-child td {
+  border-bottom: none;
+}
+
+.grade-table input {
+  width: 5.5rem;
+  min-height: 2.4rem;
+  padding: 0.4rem 0.6rem;
+  background: var(--background);
+  color: var(--foreground);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 0.95rem;
+}
+
+.grade-table input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.grade-result {
+  margin-top: 1.25rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.grade-result p {
+  font-size: 0.95rem;
+}
+
+.grade-result strong {
+  font-size: 1.1rem;
+}
+
+.grade-note {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.letter-grade {
+  color: var(--class-accent, var(--accent));
+}
+
+.link-button {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--class-accent, var(--accent));
+  cursor: pointer;
+  text-decoration: underline;
+  font-size: inherit;
+}
+
+.grade-scale-editor {
+  margin-top: 0.85rem;
+  padding: 0.9rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.grade-scale-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.grade-scale-letter,
+.grade-scale-min {
+  padding: 0.4rem 0.6rem;
+  background: var(--background);
+  color: var(--foreground);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 0.95rem;
+}
+
+.grade-scale-letter {
+  width: 4rem;
+}
+
+.grade-scale-min {
+  width: 5rem;
+}
+
+.grade-scale-actions {
+  display: flex;
+  gap: 1.25rem;
+  align-items: center;
+  margin-top: 0.6rem;
+}
+
+/* ---- Add-class form ---- */
+
+.syllabus-textarea {
+  width: 100%;
+  min-height: 8rem;
+  padding: 0.9rem;
+  background: var(--surface);
+  color: var(--foreground);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 0.95rem;
+  line-height: 1.5;
+  resize: vertical;
+}
+
+.syllabus-textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.extract-button {
+  margin-top: 1rem;
+  padding: 0.65rem 1.3rem;
+  border: none;
+  border-radius: 8px;
+  background: var(--accent);
+  color: var(--accent-foreground);
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.extract-button:hover:not(:disabled) {
+  background: var(--accent-hover);
+}
+
+.extract-button:disabled {
+  background: var(--border);
+  color: var(--muted);
+  cursor: not-allowed;
+}
+
+.error-message {
+  margin-top: 0.85rem;
+  padding: 0.6rem 0.9rem;
+  background: var(--danger-soft);
+  color: var(--danger);
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+
+/* ---- Small screens ---- */
+
+@media (max-width: 600px) {
+  .page {
+    padding: 1.5rem 1rem 3rem;
+  }
+
+  .app-title {
+    font-size: 1.3rem;
+  }
+
+  section h2 {
+    font-size: 1.15rem;
+  }
+
+  .deadline-item {
+    flex-wrap: wrap;
+    align-items: flex-start;
+  }
+
+  .deadline-main {
+    flex-basis: calc(100% - 2rem);
+  }
+
+  .deadline-meta {
+    flex-direction: row;
+    align-items: center;
+    margin-top: 0.4rem;
+    margin-left: 2rem;
+  }
+
+  .deadline-item.with-swatch .deadline-meta {
+    margin-left: 2.9rem;
+  }
+
+  .grade-table th,
+  .grade-table td {
+    padding: 0.55rem 0.4rem;
+    font-size: 0.88rem;
+  }
+
+  .grade-table input {
+    width: 4.8rem;
+    padding: 0.4rem 0.45rem;
+  }
 }
